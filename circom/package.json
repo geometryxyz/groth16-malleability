@@ -4,8 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "compile:unused_pub": "ts-node scripts/compile-circuits.ts --circuit=unused_pub",
-    "compile:linear_dep": "ts-node scripts/compile-circuits.ts --circuit=linear_dep",
+    "compile:unused_pub": "npx ts-node scripts/compile-circuit.ts --circuit=unused_pub",
+    "compile:linear_dep": "npx ts-node scripts/compile-circuits.ts --circuit=linear_dep",
     "test": "jest --forceExit"
   },
   "keywords": [],
