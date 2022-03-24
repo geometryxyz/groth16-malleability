@@ -1,0 +1,15 @@
+{
+    "compilerOptions": {
+      "moduleResolution": "Node",
+      "noImplicitAny": true,
+      "resolveJsonModule": true,
+      "target": "ES2018",
+      "module": "CommonJS",
+      "strict": true,
+      "allowJs": true,
+      "esModuleInterop": true,
+      "outDir": "dist",
+      "typeRoots": ["node_modules/@types", "types"]
+    },
+    "include": ["src/**/*", "scripts/**/*"],
+}
