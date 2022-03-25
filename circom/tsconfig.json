@@ -11,5 +11,5 @@
       "outDir": "dist",
       "typeRoots": ["node_modules/@types", "types"]
     },
-    "include": ["src/**/*", "scripts/**/*"],
+    "include": ["src/**/*", "scripts/**/*", "test/**/*"],
 }
