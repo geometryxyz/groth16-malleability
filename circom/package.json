@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "compile:unused_pub": "npx ts-node scripts/compile-circuit.ts --circuit=unused_pub",
-    "compile:linear_dep": "npx ts-node scripts/compile-circuits.ts --circuit=linear_dep",
+    "compile:linear_dep": "npx ts-node scripts/compile-circuit.ts --circuit=linear_dep",
     "test": "jest --forceExit"
   },
   "keywords": [],
