@@ -21,19 +21,11 @@ describe('Proof test', () => {
 
         const fullProof = await genProof(witness, wasmFilePath, finalZkeyPath);
 
-        const res = await verifyProof(vKey, fullProof);
-        expect(res).toBe(true)
-    })
-    it("Should create malleable proof", async () => {
-        const witness = {
-            a: BigInt(3),
-            b: BigInt(5),
-            x: BigInt(2),
-        };
+        const validProof = await verifyProof(vKey, fullProof);
+        expect(validProof).toBe(true)
 
-        const fullProof = await genProof(witness, wasmFilePath, finalZkeyPath);
         fullProof.publicSignals[1] = BigInt(3)
-        const res = await verifyProof(vKey, fullProof);
-        expect(res).toBe(true)
-    })
+        const malleableProof = await verifyProof(vKey, fullProof);
+        expect(malleableProof).toBe(true)
+    }, 30000)
 })

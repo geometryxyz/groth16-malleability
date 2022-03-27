@@ -34,6 +34,7 @@
     }
   },
   "dependencies": {
+    "ffjavascript": "^0.2.51",
     "snarkjs": "github:akinovak/snarkjs"
   }
 }

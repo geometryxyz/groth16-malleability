@@ -1,9 +1,9 @@
 import { config } from "../package.json"
 import path from "path"
 import fs from "fs"
-// const snarkjs = require("snarkjs");
-import { genProof, verifyProof } from "../src";
+import { genProof, verifyProof } from "../src"
 
+const { ZqField, Scalar } = require("ffjavascript")
 
 const circuit = "linear_dep";
 const wasmFilePath = path.join(config.build.snark, circuit, `${circuit}.wasm`)
@@ -11,34 +11,36 @@ const finalZkeyPath = path.join(config.build.snark, circuit, `${circuit}_final.z
 const vkeyPath = path.join(config.build.snark, circuit, `${circuit}_verification_key.json`)
 const vKey = JSON.parse(fs.readFileSync(vkeyPath, "utf-8"))
 
+const F = new ZqField(Scalar.fromString("21888242871839275222246405745257275088548364400416034343698204186575808495617"));
+const two = F.e("2")
+
+
 describe('Proof test', () => {
-    it("Should create valid proof", async () => {
-        const witness = {
-            a: BigInt(1),
-            b: BigInt(1),
-            c: BigInt(6),
-            d: BigInt(18)
-        };
-
-        const fullProof = await genProof(witness, wasmFilePath, finalZkeyPath);
-
-        const res = await verifyProof(vKey, fullProof);
-        expect(res).toBe(true)
-    })
     it("Should create malleable proof", async () => {
+        const a = F.e("1")
+        const b = F.e("1")
+        const c = F.e("6")
+        const d = F.e("18")
+
+
         const witness = {
-            a: BigInt(1),
-            b: BigInt(1),
-            c: BigInt(6),
-            d: BigInt(18)
+            a: a.toString(),
+            b: b.toString(),
+            c: c.toString(),
+            d: d.toString()
         };
 
         const fullProof = await genProof(witness, wasmFilePath, finalZkeyPath);
+        const validProof = await verifyProof(vKey, fullProof);
+        expect(validProof).toBe(true)
 
-        fullProof.publicSignals[0] = BigInt(fullProof.publicSignals[0]) + BigInt(2) * BigInt(fullProof.publicSignals[1]);
-        fullProof.publicSignals[1] = BigInt(0);
+        const newB = Scalar.fromString(BigInt("0x32Be343B94f860124dC4fEe278FDCBD38C102D88").toString())
+        const newA = F.add(a, F.mul(two, F.sub(b, newB)))
 
-        const res = await verifyProof(vKey, fullProof);
-        expect(res).toBe(true)
-    })
+        fullProof.publicSignals[0] = newA.toString()
+        fullProof.publicSignals[1] = newB;
+
+        const malleableProof = await verifyProof(vKey, fullProof);
+        expect(malleableProof).toBe(true)
+    }, 30000)
 })
