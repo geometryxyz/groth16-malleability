@@ -14,14 +14,12 @@ const vKey = JSON.parse(fs.readFileSync(vkeyPath, "utf-8"))
 const F = new ZqField(Scalar.fromString("21888242871839275222246405745257275088548364400416034343698204186575808495617"));
 const two = F.e("2")
 
-
 describe('Proof test', () => {
     it("Should create malleable proof", async () => {
         const a = F.e("1")
         const b = F.e("1")
         const c = F.e("6")
         const d = F.e("18")
-
 
         const witness = {
             a: a.toString(),

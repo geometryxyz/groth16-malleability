@@ -1,9 +1,7 @@
 import { config } from "../package.json"
 import path from "path"
 import fs from "fs"
-// const snarkjs = require("snarkjs");
 import { genProof, verifyProof } from "../src";
-
 
 const circuit = "unused_pub";
 const wasmFilePath = path.join(config.build.snark, circuit, `${circuit}.wasm`)
