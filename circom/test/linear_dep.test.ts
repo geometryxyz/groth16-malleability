@@ -2,6 +2,8 @@ import { config } from "../package.json"
 import path from "path"
 import fs from "fs"
 import { genProof, verifyProof } from "../src"
+const { buildPoseidon } = require("circomlibjs") 
+
 
 const { ZqField, Scalar } = require("ffjavascript")
 
@@ -15,17 +17,28 @@ const F = new ZqField(Scalar.fromString("218882428718392752222464057452572750885
 const two = F.e("2")
 
 describe('Proof test', () => {
+    let poseidon: any;
+    beforeAll(async () => {
+        poseidon = await buildPoseidon();
+    })
+
     it("Should create malleable proof", async () => {
         const a = F.e("1")
         const b = F.e("1")
         const c = F.e("6")
         const d = F.e("18")
 
+        const private_inputs_hash_buff = poseidon([c.toString(), d.toString()])
+        const private_inputs_hash = poseidon.F.toString(private_inputs_hash_buff)
+
+        console.log(private_inputs_hash)
+
         const witness = {
             a: a.toString(),
             b: b.toString(),
             c: c.toString(),
-            d: d.toString()
+            d: d.toString(),
+            private_inputs_hash
         };
 
         const fullProof = await genProof(witness, wasmFilePath, finalZkeyPath);

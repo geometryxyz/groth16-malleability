@@ -43,11 +43,15 @@ C = (
     a2` = 0 -> 0 
 */
 
+include "../node_modules/circomlib/circuits/poseidon.circom";
+
 template LDependence() {
     signal input a;
     signal input b;
     signal input c;
     signal input d;
+
+    signal input private_inputs_hash;
 
     signal d_minus_three; 
     d_minus_three <== d - 3;
@@ -58,7 +62,13 @@ template LDependence() {
     d === (a + 2*b) * c;
     d_minus_three === (a + 2*b) * c_minus_one;
 
+    component poseidon = Poseidon(2);
+    poseidon.inputs[0] <== c;
+    poseidon.inputs[1] <== d;
+
+    private_inputs_hash === poseidon.out;
+
 }
 
-component main {public [a, b]} = LDependence();
+component main {public [a, b, private_inputs_hash]} = LDependence();
 
