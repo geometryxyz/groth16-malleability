@@ -7,13 +7,13 @@ const { buildPoseidon } = require("circomlibjs")
 
 const { ZqField, Scalar, buildBn128, utils } = require("ffjavascript")
 const { unstringifyBigInts, stringifyBigInts } = utils;
+const binFileUtils = require("@iden3/binfileutils");
 
 const circuit = "linear_dep";
 const wasmFilePath = path.join(config.build.snark, circuit, `${circuit}.wasm`)
 const finalZkeyPath = path.join(config.build.snark, circuit, `${circuit}_final.zkey`)
 const vkeyPath = path.join(config.build.snark, circuit, `${circuit}_verification_key.json`)
 const vKey = JSON.parse(fs.readFileSync(vkeyPath, "utf-8"))
-const binFileUtils = require("@iden3/binfileutils");
 
 const F = new ZqField(Scalar.fromString("21888242871839275222246405745257275088548364400416034343698204186575808495617"));
 
@@ -23,6 +23,7 @@ const buildMalleabeC = async (stringified_c: string, matching_base_index: number
 
     const {fd: fdZKey, sections: sectionsZKey} = await binFileUtils.readBinFile(finalZkeyPath, "zkey", 2, 1<<25, 1<<23)
     const buffBasesC = await binFileUtils.readSection(fdZKey, sectionsZKey, 8)
+    fdZKey.close()
 
     const curve = await buildBn128();
     const Fr = curve.Fr;
