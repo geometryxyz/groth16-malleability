@@ -19,10 +19,18 @@ const vKey = JSON.parse(fs.readFileSync(vkeyPath, "utf-8"))
 const F = new ZqField(Scalar.fromString("21888242871839275222246405745257275088548364400416034343698204186575808495617"));
 
 
-const buildMalleabeC = async (stringified_c: string, matching_base_index: number, matching_pub_input: BigInt, new_public_input: BigInt, lf: BigInt) => {
+const buildMalleabeC = async (
+    stringified_c: string,
+    matching_base_index: number,
+    matching_pub_input: BigInt,
+    new_public_input: BigInt,
+    lf: BigInt,
+    num_pub_inputs: number,
+    zkeyPath: string,
+) => {
     const c = unstringifyBigInts(stringified_c)
 
-    const {fd: fdZKey, sections: sectionsZKey} = await binFileUtils.readBinFile(finalZkeyPath, "zkey", 2, 1<<25, 1<<23)
+    const {fd: fdZKey, sections: sectionsZKey} = await binFileUtils.readBinFile(zkeyPath, "zkey", 2, 1<<25, 1<<23)
     const buffBasesC = await binFileUtils.readSection(fdZKey, sectionsZKey, 8)
     fdZKey.close()
 
@@ -36,7 +44,7 @@ const buildMalleabeC = async (stringified_c: string, matching_base_index: number
     const matching_pub = new Uint8Array(Fr.n8);
     Scalar.toRprLE(matching_pub, 0, matching_pub_input, Fr.n8);
 
-    const sGIn = curve.G1.F.n8*2
+    const sGIn = curve.G1.F.n8 * (num_pub_inputs + 1);
     const matching_base = buffBasesC.slice(matching_base_index*sGIn, matching_base_index*sGIn + sGIn)
     
     const linear_factor = Fr.e(lf.toString(10))
@@ -84,33 +92,50 @@ describe('Proof test', () => {
         const newPi = BigInt("0x32Be343B94f860124dC4fEe278FDCBD38C102D88")
         const linearDep = BigInt(2)
         const matchingBase = 1;
-        const malleable_c = await buildMalleabeC(fullProof.proof.pi_c, matchingBase, BigInt(a), newPi, linearDep)
+        const malleable_c = await buildMalleabeC(
+            fullProof.proof.pi_c,
+            matchingBase,
+            BigInt(a),
+            newPi,
+            linearDep,
+            1,
+            finalZkeyPath,
+        )
         fullProof.proof.pi_c = malleable_c;
         fullProof.publicSignals[0] = newPi
-
-        debugger
 
         const malleableProof = await verifyProof(vKey, fullProof);
         expect(malleableProof).toBe(true)
     }, 30000)
 
     it("Should create malleable proof from hardcoded proof", async () => {
+        const zkey2Path = path.join(config.build.snark, circuit, `zkey2.zkey`)
         const vkeyPath = path.join(config.build.snark, circuit, `vkey2.json`)
         const vKey = JSON.parse(fs.readFileSync(vkeyPath, "utf-8"))
 
         const proofStr = '{"proof":{"pi_a":["9116137692168313545257963496822789078889884338884935318299769578609942372913","1169049148027571100028615690504001146545764669525597079739831676817269574802","1"],"pi_b":[["18173624827777478757465348127607695706737142597392275714133616708574906221118","6248999832388094105037078891358214271529600414771987765785754489664451781710"],["1742412230559230372842295749896283403724596008502928310361616441132352244059","10079016627411999768171919959229700402776116097832870406016675610441869045550"],["1","0"]],"pi_c":["8442490429681697496656183243861064363210289740000793944498285667066888569225","15670531465640369709154663231318828218560812151060147954011736913669460346783","1"],"protocol":"groth16","curve":"bn128"},"publicSignals":["1","16500345345413527311975906972246791795787167817628578714941278197073435252369"]}'
 
         const fullProof = unstringifyBigInts(JSON.parse(proofStr));
+        const isValidBefore = await verifyProof(vKey, fullProof);
+        expect(isValidBefore).toBe(true)
 
         const a = 1;
         const newPi = BigInt("0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266")
         const linearDep = BigInt(2)
-        const matchingBase = 1;
-        const malleable_c = await buildMalleabeC(fullProof.proof.pi_c, matchingBase, BigInt(a), newPi, linearDep)
+        const matchingBaseIndex = 1;
+        const malleable_c = await buildMalleabeC(
+            fullProof.proof.pi_c,
+            matchingBaseIndex,
+            BigInt(a),
+            newPi,
+            linearDep,
+            2,
+            zkey2Path,
+        )
         fullProof.proof.pi_c = malleable_c;
         fullProof.publicSignals[0] = newPi
 
-        const malleableProof = await verifyProof(vKey, fullProof);
-        expect(malleableProof).toBe(true)
+        const isValidAfter = await verifyProof(vKey, fullProof);
+        expect(isValidAfter).toBe(true)
     })
 })
