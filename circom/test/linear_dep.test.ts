@@ -3,6 +3,7 @@ import path from "path"
 import fs from "fs"
 import { genProof, verifyProof } from "../src"
 const { buildPoseidon } = require("circomlibjs") 
+const ff = require("ffjavascript");
 
 
 const { ZqField, Scalar, buildBn128, utils } = require("ffjavascript")
@@ -87,7 +88,29 @@ describe('Proof test', () => {
         fullProof.proof.pi_c = malleable_c;
         fullProof.publicSignals[0] = newPi
 
+        debugger
+
         const malleableProof = await verifyProof(vKey, fullProof);
         expect(malleableProof).toBe(true)
     }, 30000)
+
+    it("Should create malleable proof from hardcoded proof", async () => {
+        const vkeyPath = path.join(config.build.snark, circuit, `vkey2.json`)
+        const vKey = JSON.parse(fs.readFileSync(vkeyPath, "utf-8"))
+
+        const proofStr = '{"proof":{"pi_a":["9116137692168313545257963496822789078889884338884935318299769578609942372913","1169049148027571100028615690504001146545764669525597079739831676817269574802","1"],"pi_b":[["18173624827777478757465348127607695706737142597392275714133616708574906221118","6248999832388094105037078891358214271529600414771987765785754489664451781710"],["1742412230559230372842295749896283403724596008502928310361616441132352244059","10079016627411999768171919959229700402776116097832870406016675610441869045550"],["1","0"]],"pi_c":["8442490429681697496656183243861064363210289740000793944498285667066888569225","15670531465640369709154663231318828218560812151060147954011736913669460346783","1"],"protocol":"groth16","curve":"bn128"},"publicSignals":["1","16500345345413527311975906972246791795787167817628578714941278197073435252369"]}'
+
+        const fullProof = unstringifyBigInts(JSON.parse(proofStr));
+
+        const a = 1;
+        const newPi = BigInt("0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266")
+        const linearDep = BigInt(2)
+        const matchingBase = 1;
+        const malleable_c = await buildMalleabeC(fullProof.proof.pi_c, matchingBase, BigInt(a), newPi, linearDep)
+        fullProof.proof.pi_c = malleable_c;
+        fullProof.publicSignals[0] = newPi
+
+        const malleableProof = await verifyProof(vKey, fullProof);
+        expect(malleableProof).toBe(true)
+    })
 })
