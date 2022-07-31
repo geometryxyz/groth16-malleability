@@ -10,7 +10,7 @@ const vkeyPath = path.join(config.build.snark, circuit, `${circuit}_verification
 const vKey = JSON.parse(fs.readFileSync(vkeyPath, "utf-8"))
 
 describe('Proof test', () => {
-    it("Should create valid proof", async () => {
+    it.skip("Should create valid proof", async () => {
         const witness = {
             a: BigInt(3),
             b: BigInt(5),

@@ -50,17 +50,18 @@ const buildMalleabeC = async (stringified_c: string, matching_base_index: number
 }
 
 describe('Proof test', () => {
-    // let poseidon: any;
-    // beforeAll(async () => {
-    //     poseidon = await buildPoseidon();
-    // })
+    let poseidon: any;
+    beforeAll(async () => {
+        poseidon = await buildPoseidon();
+    })
 
-    it.skip("Should create malleable proof", async () => {
+    it("Should create malleable proof", async () => {
         const a = F.e("1")
         const b = F.e("1")
         const c = F.e("1")
+        // const d = F.e("21888242871839275222246405745257275088548364400416034343698204186575808495616")
         const d = F.e("1")
-        const e = F.e("3")
+        // const e = F.e("3")
 
         // const private_inputs_hash_buff = poseidon([c.toString(), d.toString()])
         // const private_inputs_hash = poseidon.F.toString(private_inputs_hash_buff)
@@ -72,7 +73,7 @@ describe('Proof test', () => {
             b: b.toString(),
             c: c.toString(),
             d: d.toString(),
-            e: e.toString(),
+            // e: e.toString(),
             // private_inputs_hash
         };
 
@@ -82,7 +83,7 @@ describe('Proof test', () => {
 
         const newPi = BigInt("0x32Be343B94f860124dC4fEe278FDCBD38C102D88")
         const linearDep = BigInt(2)
-        const matchingBase = 1;
+        const matchingBase = 0;
         const malleable_c = await buildMalleabeC(fullProof.proof.pi_c, matchingBase, BigInt(a), newPi, linearDep)
         fullProof.proof.pi_c = malleable_c;
         fullProof.publicSignals[0] = newPi
