@@ -1,16 +1,14 @@
-// import { config } from "../package.json"
-// import path from "path"
-// import fs from "fs"
-// import { genProof, verifyProof } from "./utils"
-
 const { config } = require("../package.json");
 const path = require("path");
 const fs = require("fs");
 const { genProof, verifyProof } = require("./utils.js");
+// const { ZqField, Scalar } = require("ffjavascript")
 
 const { ZqField, Scalar, buildBn128, utils } = require("ffjavascript")
 const { unstringifyBigInts, stringifyBigInts } = utils;
 const binFileUtils = require("@iden3/binfileutils");
+
+const F = new ZqField(Scalar.fromString("21888242871839275222246405745257275088548364400416034343698204186575808495617"));
 
 const circuit = "circuit";
 const wasmFilePath = path.join(config.paths.build.snark, circuit, `${circuit}.wasm`)
@@ -49,8 +47,6 @@ const buildMalleabeC = async (stringified_c, matching_base_index, matching_pub_i
     return stringifyBigInts(G1.toObject(malleable_c))
 }
 
-const F = new ZqField(Scalar.fromString("21888242871839275222246405745257275088548364400416034343698204186575808495617"));
-
 const a = F.e("1")
 const b = F.e("1")
 const c = F.e("1")
@@ -63,23 +59,34 @@ const witness = {
     d: d.toString(),
 };
 
+console.assert = (cond, msg) => {
+	if( cond )	return;
+	if( console.assert.useDebugger ) debugger;
+	throw new Error(msg || "Assertion failed!");
+};
 
 const run = async () => {
-    const fullProof = await genProof(witness, wasmFilePath, finalZkeyPath);
-    const validProof = await verifyProof(vKey, fullProof);
-    console.log(validProof);
+    const { proof, publicSignals } = await genProof(witness, wasmFilePath, finalZkeyPath);
+    const isValid = await verifyProof(vKey, { proof, publicSignals });
+    console.assert(isValid === true, "Proof is not valid");
 
-    const newPi = BigInt("0x05C80E41113Ee42A226CF75CBE7047b22B8b9A36")
+    const new_a = BigInt("PUT_YOUR_ADDRESS_HERE");
+    publicSignals[0] = new_a;
+
     const linearDep = BigInt(2)
     const matchingBase = 0;
-    const malleable_c = await buildMalleabeC(fullProof.proof.pi_c, matchingBase, BigInt(a), newPi, linearDep)
-    fullProof.proof.pi_c = malleable_c;
-    fullProof.publicSignals[0] = newPi
+    const malleable_c = await buildMalleabeC(proof.pi_c, matchingBase, BigInt(a), new_a, linearDep)
+    proof.pi_c = malleable_c;
 
-    const malleableProof = await verifyProof(vKey, fullProof);
-    console.log(malleableProof);
+    /*
+        PUT YOUR SOLUTION HERE
 
-    const { proof } = fullProof;
+        Change the proof such that isValidMalleable = true and passes assertion
+
+    */
+
+    const isValidMalleable = await verifyProof(vKey, { proof, publicSignals });
+    console.assert(isValidMalleable === true, "Malleable is not valid");
 
     const proofForTx = [
         proof.pi_a[0],
@@ -96,7 +103,8 @@ const run = async () => {
         proofForTx.map((x) => BigInt(x).toString(10)),
     ).split('\n').join().replaceAll('"', '');
 
-    console.log("Solution:", proofAsStr);
+    /********** Paste this stringified proof to `solve` method as explained in README **********/
+    console.log(proofAsStr);
 };
 
 run().then(() => {
