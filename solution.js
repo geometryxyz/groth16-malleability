@@ -78,13 +78,6 @@ const run = async () => {
     const malleable_c = await buildMalleabeC(proof.pi_c, matchingBase, BigInt(a), new_a, linearDep)
     proof.pi_c = malleable_c;
 
-    /*
-        PUT YOUR SOLUTION HERE
-
-        Change the proof such that isValidMalleable = true and passes assertion
-
-    */
-
     const isValidMalleable = await verifyProof(vKey, { proof, publicSignals });
     console.assert(isValidMalleable === true, "Malleable is not valid");
 
